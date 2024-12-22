@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeM Tender Scraper</title>
+    <script>
+        async function fetchCaptcha() {
+            const response = await fetch('/get-captcha');
+            const data = await response.json();
+            document.getElementById('captcha-image').src = `data:image/png;base64,${data.captcha}`;
+        }
+
+        async function uploadKeywords() {
+            const formData = new FormData();
+            const fileInput = document.getElementById('keyword-file');
+            if (fileInput.files.length > 0) {
+                formData.append('file', fileInput.files[0]);
+            } else {
+                const keywords = document.getElementById('keyword-textbox').value;
+                formData.append('keywords', keywords);
+            }
+            const response = await fetch('/load-keywords', { method: 'POST', body: formData });
+            const data = await response.json();
+            alert(`Keywords loaded: ${data.keywords}`);
+        }
+
+        async function setStartDate() {
+            const startDate = document.getElementById('start-date').value;
+            const response = await fetch('/set-start-date', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ 'start_date': startDate })
+            });
+            const data = await response.json();
+            if (data.status === "success") {
+                alert(`Start date set: ${data.start_date}`);
+            } else {
+                alert(data.message);
+            }
+        }
+
+        async function submitCaptcha() {
+            const captcha = document.getElementById('captcha-input').value;
+
+            try {
+                // Make a POST request to submit the CAPTCHA
+                const response = await fetch('/submit-captcha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ 'captcha': captcha })
+                });
+
+            // Parse the response
+            const data = await response.json();
+
+            if (data.status === "scraping_completed") {
+                alert("Scraping completed! Download the Excel file below.");
+                const downloadLink = document.getElementById('download-link');
+                downloadLink.style.display = 'block';
+                downloadLink.href = `/download-file?filename=${data.csv_filename}`;
+                downloadLink.innerText = "Download Excel File"; // Update link text
+            } else if (data.status === "no_data_found") {
+                alert("No matching tenders found.");
+            } else {
+                alert("An unexpected error occurred. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error during CAPTCHA submission:", error);
+            alert("An error occurred while submitting the CAPTCHA. Please try again.");
+        }
+    }
+
+    </script>
+</head>
+<body onload="fetchCaptcha()">
+    <h1>GeM Tender Scraper</h1>
+
+    <h3>1. Load Keywords</h3>
+    <label for="keyword-file">Upload Keywords File:</label>
+    <input type="file" id="keyword-file" accept=".txt">
+    <br>
+    <label for="keyword-textbox">Or Enter Keywords (comma-separated):</label>
+    <input type="text" id="keyword-textbox" placeholder="Keyword1, Keyword2, ...">
+    <button onclick="uploadKeywords()">Submit Keywords</button>
+
+    <h3>2. Set Start Date</h3>
+    <label for="start-date">Select Start Date:</label>
+    <input type="date" id="start-date">
+    <button onclick="setStartDate()">Set Start Date</button>
+
+    <h3>3. Solve CAPTCHA</h3>
+    <img id="captcha-image" alt="CAPTCHA">
+    <br>
+    <label for="captcha-input">Enter CAPTCHA:</label>
+    <input type="text" id="captcha-input">
+    <button onclick="submitCaptcha()">Submit CAPTCHA</button>
+
+    <h3>4. Download Excel File</h3>
+    <a id="download-link" href="#" style="display:none;" download>Download Excel File</a>
+
+</body>
+</html>
