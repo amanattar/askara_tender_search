@@ -10,24 +10,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-from selenium.webdriver.chrome.options import Options
-
-# Configure Chrome options for headless mode
-options = Options()
-options.add_argument("--headless")  # Run in headless mode
-options.add_argument("--disable-gpu")  # Disable GPU acceleration
-options.add_argument("--no-sandbox")  # Prevent sandboxing
-options.add_argument("--disable-dev-shm-usage")  # Overcome limited resources in Azure
-options.add_argument("--window-size=1920,1080")  # Ensure proper rendering size
-
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-
 # Flask app setup
 app = Flask(__name__)
 
 # Global variables for Selenium and scraping
-
+driver = None
 tenders = []
 csv_filename = ""
 start_date = None
