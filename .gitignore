@@ -1,2 +1,6 @@
 process
 .DS_Store
+.csv
+.ipynb
+.ipynb_checkpoints
+.xlsx
