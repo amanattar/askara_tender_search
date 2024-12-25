@@ -12,13 +12,25 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 
 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+
+options = Options()
+options.binary_location = "/app/.apt/usr/bin/google-chrome"  # Path to Heroku's Chromium binary
+options.add_argument("--disable-gpu")
+options.add_argument("--no-sandbox")  # Required for running as root in Heroku
+options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+
 
 # Flask app setup
 app = Flask(__name__)
 
 # Global variables for Selenium and scraping
-options = Options()
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 tenders = []
 csv_filename = ""
 start_date = None
@@ -88,6 +100,15 @@ def submit_captcha():
         return jsonify({"status": "scraping_completed", "csv_filename": csv_filename})
     else:
         return jsonify({"status": "no_data_found"})
+
+@app.route('/debug-chrome')
+def debug_chrome():
+    import subprocess
+    try:
+        chrome_version = subprocess.check_output(["/app/.apt/usr/bin/google-chrome", "--version"]).decode("utf-8")
+        return f"Google Chrome version: {chrome_version}"
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
 def scrape_tenders():
