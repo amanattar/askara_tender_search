@@ -113,7 +113,7 @@ def scrape_tenders(driver):
     tenders = []
     while True:
         try:
-            table_body = WebDriverWait(driver, 30).until(
+            table_body = WebDriverWait(driver, 60).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="table"]/tbody'))
             )
             rows = table_body.find_elements(By.TAG_NAME, "tr")
