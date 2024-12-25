@@ -17,14 +17,15 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
 options = Options()
-options.binary_location = "/app/.apt/opt/google/chrome/chrome"  # Path to Chrome binary
+options.binary_location = "/app/.apt/usr/bin/google-chrome"  # Correct path for Chrome binary
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 
-# Specify the Chromedriver path
-service = Service("/app/.chromedriver/bin/chromedriver")
+# Use the correct ChromeDriver path
+service = Service("/app/.apt/usr/bin/chromedriver")
 driver = webdriver.Chrome(service=service, options=options)
+
 
 
 
