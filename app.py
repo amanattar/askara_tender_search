@@ -103,12 +103,13 @@ def submit_captcha():
     else:
         return jsonify({"status": "no_data_found"})
 
-@app.route('/debug-chrome')
-def debug_chrome():
+@app.route('/debug')
+def debug():
     import subprocess
     try:
         chrome_version = subprocess.check_output(["/app/.apt/usr/bin/google-chrome", "--version"]).decode("utf-8")
-        return f"Google Chrome version: {chrome_version}"
+        chromedriver_version = subprocess.check_output(["/app/.apt/usr/bin/chromedriver", "--version"]).decode("utf-8")
+        return f"Chrome version: {chrome_version}, ChromeDriver version: {chromedriver_version}"
     except Exception as e:
         return f"Error: {str(e)}"
 
