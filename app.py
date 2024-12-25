@@ -15,15 +15,19 @@ from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
 options = Options()
-options.binary_location = "/app/.apt/usr/bin/google-chrome"  # Correct path for Chrome binary
+options.binary_location = "/app/.chrome-for-testing/chrome-linux64/chrome"  # Path to Chrome binary
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 
-# Use the correct ChromeDriver path
-service = Service("/app/.apt/usr/bin/chromedriver")
+service = Service("/app/.chrome-for-testing/chromedriver-linux64/chromedriver")  # Path to ChromeDriver
 driver = webdriver.Chrome(service=service, options=options)
 
 
@@ -33,6 +37,7 @@ driver = webdriver.Chrome(service=service, options=options)
 app = Flask(__name__)
 
 # Global variables for Selenium and scraping
+
 tenders = []
 csv_filename = ""
 start_date = None
@@ -103,12 +108,12 @@ def submit_captcha():
     else:
         return jsonify({"status": "no_data_found"})
 
-@app.route('/debug')
-def debug():
+@app.route('/debug-chrome')
+def debug_chrome():
     import subprocess
     try:
-        chrome_version = subprocess.check_output(["/app/.apt/usr/bin/google-chrome", "--version"]).decode("utf-8")
-        chromedriver_version = subprocess.check_output(["/app/.apt/usr/bin/chromedriver", "--version"]).decode("utf-8")
+        chrome_version = subprocess.check_output(["/app/.chrome-for-testing/chrome-linux64/chrome", "--version"]).decode("utf-8")
+        chromedriver_version = subprocess.check_output(["/app/.chrome-for-testing/chromedriver-linux64/chromedriver", "--version"]).decode("utf-8")
         return f"Chrome version: {chrome_version}, ChromeDriver version: {chromedriver_version}"
     except Exception as e:
         return f"Error: {str(e)}"
