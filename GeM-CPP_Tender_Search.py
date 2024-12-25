@@ -74,7 +74,7 @@ tenders = []
 def scrape_tenders():
     try:
         driver.get(url)
-        time.sleep(3)  # Allow the page to load
+        time.sleep(15)  # Allow the page to load
 
         # Prompt user for Yes/No input
         user_input = input("Please solve the CAPTCHA manually. Type 'yes' to continue or 'no' to cancel: ").strip().lower()
