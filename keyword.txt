@@ -1,4 +1,0 @@
-Hoses
-pipe 
-motor
-monitor
