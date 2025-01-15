@@ -11,6 +11,17 @@
             document.getElementById('captcha-image').src = `data:image/png;base64,${data.captcha}`;
         }
 
+        async function refreshCaptcha() {
+            const response = await fetch('/refresh-captcha');
+            const data = await response.json();
+            if (data.captcha) {
+                document.getElementById('captcha-image').src = `data:image/png;base64,${data.captcha}`;
+                alert("CAPTCHA refreshed successfully.");
+            } else {
+                alert("Failed to refresh CAPTCHA. Please try again.");
+            }
+        }
+
         async function uploadKeywords() {
             const formData = new FormData();
             const fileInput = document.getElementById('keyword-file');
@@ -44,33 +55,28 @@
             const captcha = document.getElementById('captcha-input').value;
 
             try {
-                // Make a POST request to submit the CAPTCHA
                 const response = await fetch('/submit-captcha', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams({ 'captcha': captcha })
                 });
+                const data = await response.json();
 
-            // Parse the response
-            const data = await response.json();
-
-            if (data.status === "scraping_completed") {
-                alert("Scraping completed! Download the Excel file below.");
-                const downloadLink = document.getElementById('download-link');
-                downloadLink.style.display = 'block';
-                downloadLink.href = `/download-file?filename=${data.csv_filename}`;
-                downloadLink.innerText = "Download Excel File"; // Update link text
-            } else if (data.status === "no_data_found") {
-                alert("No matching tenders found.");
-            } else {
-                alert("An unexpected error occurred. Please try again.");
+                if (data.status === "scraping_completed") {
+                    alert("Scraping completed! Download the Excel file below.");
+                    const downloadLink = document.getElementById('download-link');
+                    downloadLink.style.display = 'block';
+                    downloadLink.href = `/download-excel?filename=${data.excel_filename}`;
+                } else if (data.status === "no_data_found") {
+                    alert("No matching tenders found.");
+                } else {
+                    alert(data.message || "An unexpected error occurred. Please try again.");
+                }
+            } catch (error) {
+                console.error("Error during CAPTCHA submission:", error);
+                alert("An error occurred while submitting the CAPTCHA. Please try again.");
             }
-        } catch (error) {
-            console.error("Error during CAPTCHA submission:", error);
-            alert("An error occurred while submitting the CAPTCHA. Please try again.");
         }
-    }
-
     </script>
 </head>
 <body onload="fetchCaptcha()">
@@ -92,12 +98,27 @@
     <h3>3. Solve CAPTCHA</h3>
     <img id="captcha-image" alt="CAPTCHA">
     <br>
+    <button onclick="refreshCaptcha()">Refresh CAPTCHA</button>
+    <br>
     <label for="captcha-input">Enter CAPTCHA:</label>
     <input type="text" id="captcha-input">
     <button onclick="submitCaptcha()">Submit CAPTCHA</button>
 
+    <h3>Scraping Progress</h3>
+    <div id="progress-container" style="border: 1px solid #ccc; padding: 10px; height: 200px; overflow-y: scroll;">
+        <p id="progress-log">Waiting for updates...</p>
+    </div>
+    <script>
+        const eventSource = new EventSource('/progress');
+        eventSource.onmessage = function(event) {
+            const log = document.getElementById('progress-log');
+            log.innerText += event.data + "\n";
+            log.scrollTop = log.scrollHeight;  // Auto-scroll to the bottom
+        };
+    </script>
+
+
     <h3>4. Download Excel File</h3>
     <a id="download-link" href="#" style="display:none;" download>Download Excel File</a>
-
 </body>
 </html>
