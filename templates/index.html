@@ -69,6 +69,10 @@
                     downloadLink.href = `/download-excel?filename=${data.excel_filename}`;
                 } else if (data.status === "no_data_found") {
                     alert("No matching tenders found.");
+                } else if (data.status === "error" && data.message === "Invalid CAPTCHA. Please try again with the new CAPTCHA.") {
+                    alert(data.message);
+                    // Update the CAPTCHA image
+                    document.getElementById('captcha-image').src = `data:image/png;base64,${data.captcha}`;
                 } else {
                     alert(data.message || "An unexpected error occurred. Please try again.");
                 }
@@ -77,6 +81,8 @@
                 alert("An error occurred while submitting the CAPTCHA. Please try again.");
             }
         }
+
+
     </script>
 </head>
 <body onload="fetchCaptcha()">

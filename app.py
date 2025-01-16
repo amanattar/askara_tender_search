@@ -60,10 +60,16 @@ def get_captcha():
 def refresh_captcha():
     global driver
     try:
+        if driver is None:
+            return jsonify({"error": "WebDriver session not initialized."}), 500
+
+        # Locate and click the refresh button
         refresh_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "captcha"))
         )
         refresh_button.click()
+
+        # Wait for the new CAPTCHA to load
         time.sleep(3)
         captcha_element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "captchaImage"))
@@ -73,24 +79,39 @@ def refresh_captcha():
     except Exception as e:
         return jsonify({"error": f"Failed to refresh CAPTCHA: {str(e)}"}), 500
 
+
 @app.route('/submit-captcha', methods=['POST'])
 def submit_captcha():
     global driver, excel_filename, tenders
     captcha_text = request.form['captcha']
     try:
+        # Enter the CAPTCHA
         captcha_field = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "captchaText"))
         )
         captcha_field.clear()
         captcha_field.send_keys(captcha_text)
 
+        # Click the submit button
         submit_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "Submit"))
         )
         submit_button.click()
+
+        # Wait for the page to refresh
         time.sleep(5)
 
-        # Start scraping tenders
+        # Check for invalid CAPTCHA error
+        page_source = driver.page_source
+        if "Invalid Captcha! Please Enter Correct Captcha." in page_source:
+            # Refresh CAPTCHA and notify user
+            captcha_element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "captchaImage"))
+            )
+            captcha_base64 = captcha_element.get_attribute("src").split(",")[1]
+            return jsonify({"status": "error", "message": "Invalid CAPTCHA. Please try again with the new CAPTCHA.", "captcha": captcha_base64})
+
+        # Start scraping tenders if CAPTCHA is correct
         tenders = scrape_tenders()
         excel_filename = save_to_excel(tenders)
 
@@ -102,6 +123,8 @@ def submit_captcha():
             return jsonify({"status": "error", "message": "Unexpected issue occurred."})
     except Exception as e:
         return jsonify({"error": f"Failed to submit CAPTCHA: {str(e)}"}), 500
+
+
 
 @app.route('/progress')
 def progress():
@@ -121,7 +144,7 @@ def scrape_tenders():
             )
             table_body = driver.find_element(By.XPATH, '//*[@id="table"]/tbody')
             rows = table_body.find_elements(By.TAG_NAME, "tr")
-            progress_messages.append(f"Found {len(rows) - 1} rows on this page.")
+            progress_messages.append(f"Found {len(rows) - 2} rows on this page.")
             for row in rows[1:]:
                 columns = row.find_elements(By.TAG_NAME, "td")
                 if len(columns) >= 7:
