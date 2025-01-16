@@ -49,7 +49,7 @@ Installation Steps
 3.  Run the following command to install the required dependencies:
     
     ```bash
-    pip install -r requirements.txt --no-cache-dir
+    pip install -r requirements.txt 
     ```
     
 4.  Wait for all the packages to be installed, then close the Command Prompt.
